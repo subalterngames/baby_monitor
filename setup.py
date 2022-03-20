@@ -1,18 +1,11 @@
-from subprocess import call
-from platform import system
+from pathlib import Path
 from setuptools import setup, find_packages
-
-
-if system() == "Windows":
-    call(["pip3", "install", "pipwin"])
-    call(["pipwin", "install", "pyaudio"])
-
 
 setup(
     name='baby_monitor',
     version="0.0.1",
     description='A simple local baby monitor',
-    long_description='TODO',
+    long_description=Path("README.md").read_text(),
     long_description_content_type='text/markdown',
     url='https://github.com/subalterngames/baby_monitor',
     author_email='subalterngames@gmail.com',
@@ -30,5 +23,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     keywords='baby monitor pygame pyaudio',
-    install_requires=["pyaudio", "numpy", "pygame", "requests", "pillow"],
+    install_requires=["flask", "numpy", "pygame", "requests", "pillow"],
 )

@@ -9,8 +9,9 @@ m = Monitor()
 
 @app.route('/get')
 def get():
-    return jsonify({"visual": m.visual,
-                    "audio": m.audio})
+    return jsonify({"movement": m.movement,
+                    "image": m.image,
+                    "size": m.camera_size})
 
 
 if __name__ == "__main__":

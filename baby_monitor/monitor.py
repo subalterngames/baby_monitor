@@ -1,13 +1,24 @@
 from typing import Tuple
 from time import sleep
-from base64 import b64encode, b64decode
+from base64 import b64encode
 import numpy as np
 import pygame.camera
 from PIL import Image, ImageChops
 
 
 class Monitor:
+    """
+    Watch for movement using a webcam.
+    """
+
     def __init__(self, camera_name: str = None, framerate: float = 0.5, movement_threshold: float = 10):
+        """
+        :param camera_name: The expected name of the webcam. If None, defaults to the first camera.
+        :param framerate: Seconds per image capture.
+        :param movement_threshold: A scalar defining movement. A higher value means that more movement is ignored.
+        """
+
+        # Initialize the camera.
         pygame.camera.init(pygame.camera.get_backends()[0])
         camera_names = pygame.camera.list_cameras()
         if camera_name is None:
@@ -18,11 +29,21 @@ class Monitor:
         self._camera = pygame.camera.Camera(camera_names[camera_names.index(camera_name)])
         self._framerate: float = framerate
         self._movement_threshold: float = movement_threshold
+        """:field
+        If True, there is movement on this frame.
+        """
         self.movement: bool = False
+        """:field
+        The image from this frame encoded as a base64 string.
+        """
         self.image: str = ""
+        """:field
+        The camera pixel dimensions.
+        """
         self.camera_size: Tuple[int, int] = (0, 0)
 
     def run(self) -> None:
+        # Turn on the camera.
         self._camera.start()
         done = False
         # Check deltas.
@@ -48,8 +69,3 @@ class Monitor:
                     done = True
         finally:
             self._camera.stop()
-
-
-if __name__ == "__main__":
-    m = Monitor()
-    m.run()

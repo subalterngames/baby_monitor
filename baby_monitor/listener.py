@@ -6,16 +6,25 @@ from requests.exceptions import ConnectionError
 import pygame
 import pygame.mixer
 from baby_monitor.paths import FONT_PATH, IMAGES_DIRECTORY, AUDIO_DIRECTORY
-from procemon_rpg.commands.add_text import AddText
 
 
 class Listener:
+    """
+    Listen to the baby monitor. Show the webcam. Ping the user ("ding") when there is movement.
+    """
+
     def __init__(self, framerate: float = 0.5, url: str = "http://127.0.0.1:5000/get"):
+        """
+        :param framerate: Sleep this many seconds between frames.
+        :param url: The **local** address and port of the monitor, e.g. `"http://10.0.0.62:42069/get"`.
+        """
+
         self._framerate: float = framerate
         self._url: str = url
-        self.movement: bool = False
+        self._movement: bool = False
 
     def run(self) -> None:
+        # Initialize the window.
         pygame.init()
         pygame.mixer.init()
         pygame.display.set_mode((800, 600))
@@ -30,12 +39,19 @@ class Listener:
         display_size = pygame.display.get_surface().get_size()
         pygame.display.get_surface().blit(text_surface, (display_size[0] - text_size[0] - 16,
                                                          display_size[1] - text_size[1] - 16))
+        # Get the light surfaces.
         light_position = (display_size[0] - text_size[0] - 16 + 20,
                           display_size[1] - text_size[1] - 16 - 80)
         lit = pygame.image.load(str(IMAGES_DIRECTORY.joinpath("lit.png"))).convert()
         unlit = pygame.image.load(str(IMAGES_DIRECTORY.joinpath("unlit.png"))).convert()
         while True:
+            # Quit when the user presses the Escape key.
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if pygame.key.name(event.key) == "escape":
+                        exit()
             try:
+                # Get data from the monitor.
                 resp = get(self._url)
                 if resp.status_code == 200:
                     js = resp.json()
@@ -49,17 +65,15 @@ class Listener:
                     if js["movement"]:
                         pygame.display.get_surface().blit(lit, light_position)
                         # Ding!
-                        if not self.movement:
+                        if not self._movement:
                             sound.play()
-                        self.movement = True
+                        self._movement = True
+                    # Show the unlit light.
                     else:
                         pygame.display.get_surface().blit(unlit, light_position)
-                        self.movement = False
+                        self._movement = False
                     pygame.display.flip()
             except ConnectionError:
                 pass
+            # Wait.
             sleep(self._framerate)
-
-
-if __name__ == "__main__":
-    Listener().run()

@@ -1,6 +1,6 @@
 from threading import Thread
 import logging
-import socket
+import netifaces as ni
 from flask import Flask
 from flask import jsonify
 from baby_monitor.monitor import Monitor
@@ -17,8 +17,8 @@ def get():
 
 
 if __name__ == "__main__":
-    # Print the local IP address. Source: https://www.delftstack.com/howto/python/get-ip-address-python/
-    print("Address:", socket.gethostbyname(socket.gethostname()))
+    # Print the local IP address. Source: https://stackoverflow.com/a/24196955
+    print("Address:", ni.ifaddresses(ni.gateways()[ni.AF_INET][0][1])[ni.AF_INET][0]['addr'])
     # Disable most logging. Source: https://stackoverflow.com/a/18379764
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)

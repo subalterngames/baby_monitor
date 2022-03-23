@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='baby_monitor',
-    version="0.0.1",
+    version="0.0.2",
     description='A simple local baby monitor',
     long_description=Path("README.md").read_text(),
     long_description_content_type='text/markdown',
@@ -23,5 +23,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     keywords='baby monitor pygame pyaudio',
-    install_requires=["flask", "numpy", "pygame", "requests", "pillow"],
+    install_requires=["flask", "numpy", "pygame", "requests", "pillow", "netifaces"],
 )

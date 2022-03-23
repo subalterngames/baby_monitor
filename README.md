@@ -10,13 +10,13 @@ I made this program because I have a mischievous puppy named Bruce.
 
 ## Why you should use this program
 
-- This is not smart technology. It doesn't use server that is records your house and reports to Google/Amazon/etc. everything that you do. This program works strictly on your local WiFi or LAN network and doesn't save anything or upload anything to the cloud.
-- This program is simple and portable (assuming that you know how to run Python programs). It will run on just about any machine from the past 15 years.
+- **This is not a smart (surveillance) app.** It doesn't connect to server records everything in your house to sell to Google/Amazon/etc. This program works strictly on your local WiFi or LAN network and doesn't save anything or upload anything to the cloud.
+- This program is simple and portable (assuming that you know how to run Python programs). It will run on just about any machine from the past 20 years.
 
 ## Why you shouldn't use this program
 
 - If you're not on the same network (for example, if the monitor is at home and you are at an office), this program won't work.
-- If you want to listen to audio; this program doesn't listen to the monitor computer's microphone.
+- If you want to listen to audio, you can't; this program doesn't listen to the monitor computer's microphone.
 
 ## Requirements
 

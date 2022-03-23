@@ -4,9 +4,9 @@ A baby monitor and listener. Run the monitor script on a computer with a webcam 
 
 This program "listens" to motion on the webcam. Every half-second, it will capture an image and compare if to the previous image. If there is a big difference, then there was movement.
 
-## Why I use this program
+I made this program because I have a mischievous puppy named Bruce.
 
-- I have a mischievous puppy. 
+![](bruce.jpg)
 
 ## Why you should use this program
 

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='baby_monitor',
-    version="0.0.2",
+    version="1.0.0",
     description='A simple local baby monitor',
     long_description=Path("README.md").read_text(),
     long_description_content_type='text/markdown',
@@ -12,7 +12,7 @@ setup(
     author='Seth Alter',
     license='MIT',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Topic :: Software Development',
         'License :: OSI Approved :: BSD License',
@@ -22,6 +22,6 @@ setup(
     ],
     packages=find_packages(),
     include_package_data=True,
-    keywords='baby monitor pygame pyaudio',
+    keywords='baby monitor pygame',
     install_requires=["flask", "numpy", "pygame", "requests", "pillow", "netifaces"],
 )

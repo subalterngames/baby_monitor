@@ -1,3 +1,4 @@
+from datetime import datetime
 from base64 import b64decode
 from time import sleep
 import numpy as np
@@ -37,13 +38,12 @@ class Listener:
         text_surface = font.render("Movement", True, (0, 0, 0), (255, 255, 255))
         text_size = text_surface.get_size()
         display_size = pygame.display.get_surface().get_size()
-        pygame.display.get_surface().blit(text_surface, (display_size[0] - text_size[0] - 16,
-                                                         display_size[1] - text_size[1] - 16))
         # Get the light surfaces.
         light_position = (display_size[0] - text_size[0] - 16 + 20,
                           display_size[1] - text_size[1] - 16 - 80)
         lit = pygame.image.load(str(IMAGES_DIRECTORY.joinpath("lit.png"))).convert()
         unlit = pygame.image.load(str(IMAGES_DIRECTORY.joinpath("unlit.png"))).convert()
+        movement_time = "Never"
         while True:
             # Quit when the user presses the Escape key.
             for event in pygame.event.get():
@@ -51,6 +51,10 @@ class Listener:
                     if pygame.key.name(event.key) == "escape":
                         exit()
             try:
+                # Redraw the screen.
+                pygame.display.get_surface().fill((255, 255, 255))
+                pygame.display.get_surface().blit(text_surface, (display_size[0] - text_size[0] - 16,
+                                                                 display_size[1] - text_size[1] - 16))
                 # Get data from the monitor.
                 resp = get(self._url)
                 if resp.status_code == 200:
@@ -64,6 +68,7 @@ class Listener:
                     # Show the light.
                     if js["movement"]:
                         pygame.display.get_surface().blit(lit, light_position)
+                        movement_time = datetime.today().strftime("%H:%M:%S")
                         # Ding!
                         if not self._movement:
                             sound.play()
@@ -72,6 +77,8 @@ class Listener:
                     else:
                         pygame.display.get_surface().blit(unlit, light_position)
                         self._movement = False
+                    move_time_surface = font.render(f"Last movement: {movement_time}", True, (0, 0, 0), (255, 255, 255))
+                    pygame.display.get_surface().blit(move_time_surface, (16, display_size[1] - text_size[1] - 16))
                     pygame.display.flip()
             except ConnectionError:
                 pass

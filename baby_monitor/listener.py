@@ -2,6 +2,7 @@ from datetime import datetime
 from base64 import b64decode
 from time import sleep
 import numpy as np
+from PIL import Image, ImageChops
 from requests import get
 from requests.exceptions import ConnectionError
 import pygame
@@ -14,14 +15,18 @@ class Listener:
     Listen to the baby monitor. Show the webcam. Ping the user ("ding") when there is movement.
     """
 
-    def __init__(self, framerate: float = 0.5, url: str = "http://127.0.0.1:5000/get"):
+    def __init__(self, framerate: float = 0.5, url: str = "http://127.0.0.1:5000/get", movement_threshold: float = 10):
         """
         :param framerate: Sleep this many seconds between frames.
         :param url: The **local** address and port of the monitor, e.g. `"http://10.0.0.62:42069/get"`.
+        :param movement_threshold: A scalar defining movement. A higher value means that more movement is ignored.
         """
 
         self._framerate: float = framerate
         self._url: str = url
+        self._movement_threshold: float = movement_threshold
+        self._previous_arr: np.array = np.zeros([0])
+        self._has_previous_image: bool = False
         self._movement: bool = False
 
     def run(self) -> None:
@@ -33,6 +38,7 @@ class Listener:
         pygame.display.get_surface().fill((255, 255, 255))
         # Get the sound.
         sound = pygame.mixer.Sound(str(AUDIO_DIRECTORY.joinpath("gmae.wav").resolve()))
+        channel: pygame.mixer.Channel = pygame.mixer.find_channel()
         # Print some text.
         font = pygame.font.Font(str(FONT_PATH.resolve()), 24)
         text_surface = font.render("Movement", True, (0, 0, 0), (255, 255, 255))
@@ -62,11 +68,22 @@ class Listener:
                     # Show the camera image.
                     image_bytes = b64decode(js["image"])
                     image_arr = np.frombuffer(image_bytes, dtype=np.uint8)
-                    image_arr = np.reshape(image_arr, (js["size"][0], js["size"][1], 3))
+                    image_arr = np.reshape(image_arr, (js["camera_size"][0], js["camera_size"][1], 3))
+                    if self._has_previous_image:
+                        # Convert the numpy arrays to images, get the difference, and get the mean of the difference.
+                        q = np.mean(np.array(ImageChops.difference(Image.fromarray(self._previous_arr),
+                                                                   Image.fromarray(image_arr))))
+                        movement = bool(q > self._movement_threshold)
+                        # Update the previous image.
+                        self._previous_arr = image_arr.copy()
+                    else:
+                        self._has_previous_image = True
+                        self._previous_arr = image_arr.copy()
+                        movement = False
                     image = pygame.surfarray.make_surface(image_arr)
                     pygame.display.get_surface().blit(image, (16, 16))
                     # Show the light.
-                    if js["movement"]:
+                    if movement:
                         pygame.display.get_surface().blit(lit, light_position)
                         movement_time = datetime.today().strftime("%H:%M:%S")
                         # Ding!
@@ -80,6 +97,9 @@ class Listener:
                     move_time_surface = font.render(f"Last movement: {movement_time}", True, (0, 0, 0), (255, 255, 255))
                     pygame.display.get_surface().blit(move_time_surface, (16, display_size[1] - text_size[1] - 16))
                     pygame.display.flip()
+                    # Queue up audio.
+                    audio = b64decode(js["audio"])
+                    channel.queue(pygame.Sound(audio))
             except ConnectionError:
                 pass
             # Wait.

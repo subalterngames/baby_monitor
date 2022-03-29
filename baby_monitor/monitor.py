@@ -1,9 +1,8 @@
 from typing import Tuple
 from time import sleep
 from base64 import b64encode
-import numpy as np
 import pygame.camera
-from PIL import Image, ImageChops
+import pyaudio
 
 
 class Monitor:
@@ -11,11 +10,10 @@ class Monitor:
     Watch for movement using a webcam.
     """
 
-    def __init__(self, camera_name: str = None, framerate: float = 0.5, movement_threshold: float = 10):
+    def __init__(self, camera_name: str = None, framerate: float = 0.5, audio_chunk: int = 1024):
         """
         :param camera_name: The expected name of the webcam. If None, defaults to the first camera.
         :param framerate: Seconds per image capture.
-        :param movement_threshold: A scalar defining movement. A higher value means that more movement is ignored.
         """
 
         # Initialize the camera.
@@ -28,44 +26,45 @@ class Monitor:
         # Get the camera.
         self._camera = pygame.camera.Camera(camera_names[camera_names.index(camera_name)])
         self._framerate: float = framerate
-        self._movement_threshold: float = movement_threshold
-        """:field
-        If True, there is movement on this frame.
-        """
-        self.movement: bool = False
         """:field
         The image from this frame encoded as a base64 string.
         """
         self.image: str = ""
         """:field
+        The audio data from this frame encoded as a base64 string.
+        """
+        self.audio: str = ""
+        """:field
         The camera pixel dimensions.
         """
         self.camera_size: Tuple[int, int] = (0, 0)
+        self._audio_chunk: int = audio_chunk
 
     def run(self) -> None:
         # Turn on the camera.
         self._camera.start()
+        # Start the audio stream.
+        p = pyaudio.PyAudio()
+        audio_stream = p.open(format=pyaudio.paInt16,
+                              channels=2,
+                              rate=44100,
+                              input=True,
+                              frames_per_buffer=self._audio_chunk)
         done = False
         # Check deltas.
         self.camera_size = self._camera.get_size()
-        previous_arr = np.zeros(shape=(self.camera_size[0], self.camera_size[1], 3), dtype=np.uint8)
         try:
             while not done:
                 try:
-                    # Get an image from the camera.
-                    surface = self._camera.get_image()
-                    # Convert the surface to a numpy array.
-                    arr = pygame.surfarray.array3d(surface)
-                    # Save the image as a string.
-                    self.image = b64encode(arr).decode("utf-8")
-                    # Convert the numpy arrays to images, get the difference, and get the mean of the difference.
-                    q = np.mean(np.array(ImageChops.difference(Image.fromarray(previous_arr), Image.fromarray(arr))))
-                    self.movement = bool(q > self._movement_threshold)
-                    # Set the previous frame as this frame.
-                    previous_arr = arr.copy()
+                    # Get an image from the camera. Convert the surface to a numpy array. Save the image as a string.
+                    self.image = b64encode(pygame.surfarray.array3d(self._camera.get_image())).decode("utf-8")
+                    self.audio = b64encode(audio_stream.read(self._audio_chunk))
                     # Wait.
                     sleep(self._framerate)
                 except KeyboardInterrupt:
                     done = True
         finally:
             self._camera.stop()
+            audio_stream.stop_stream()
+            audio_stream.close()
+            p.terminate()

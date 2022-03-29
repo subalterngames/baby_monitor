@@ -50,6 +50,7 @@ class Listener:
         lit = pygame.image.load(str(IMAGES_DIRECTORY.joinpath("lit.png"))).convert()
         unlit = pygame.image.load(str(IMAGES_DIRECTORY.joinpath("unlit.png"))).convert()
         movement_time = "Never"
+        sounds = []
         while True:
             # Quit when the user presses the Escape key.
             for event in pygame.event.get():
@@ -98,8 +99,11 @@ class Listener:
                     pygame.display.get_surface().blit(move_time_surface, (16, display_size[1] - text_size[1] - 16))
                     pygame.display.flip()
                     # Queue up audio.
-                    audio = b64decode(js["audio"])
-                    channel.queue(pygame.Sound(audio))
+                    sounds.append(pygame.mixer.Sound(b64decode(js["audio"])))
+                if not channel.get_busy():
+                    channel.play(sounds.pop(0))
+                else:
+                    print(channel.get_sound().get_length())
             except ConnectionError:
                 pass
             # Wait.

@@ -58,7 +58,10 @@ class Monitor:
                 try:
                     # Get an image from the camera. Convert the surface to a numpy array. Save the image as a string.
                     self.image = b64encode(pygame.surfarray.array3d(self._camera.get_image())).decode("utf-8")
-                    self.audio = b64encode(audio_stream.read(self._audio_chunk)).decode("utf-8")
+                    audio = b''
+                    for i in range(0, int(44100 / self._audio_chunk * self._framerate)):
+                        audio += audio_stream.read(self._audio_chunk)
+                    self.audio = b64encode(audio).decode("utf-8")
                     # Wait.
                     sleep(self._framerate)
                 except KeyboardInterrupt:

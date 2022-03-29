@@ -1,6 +1,7 @@
 from datetime import datetime
 from base64 import b64decode
 from time import sleep
+import audioop
 import numpy as np
 from PIL import Image, ImageChops
 from requests import get
@@ -15,16 +16,19 @@ class Listener:
     Listen to the baby monitor. Show the webcam. Ping the user ("ding") when there is movement.
     """
 
-    def __init__(self, framerate: float = 0.5, url: str = "http://127.0.0.1:5000/get", movement_threshold: float = 5):
+    def __init__(self, framerate: float = 0.5, url: str = "http://127.0.0.1:5000/get", movement_threshold: float = 5,
+                 audio_threshold: float = 100):
         """
         :param framerate: Sleep this many seconds between frames.
         :param url: The **local** address and port of the monitor, e.g. `"http://10.0.0.62:42069/get"`.
         :param movement_threshold: A scalar defining movement. A higher value means that more movement is ignored.
+        :param audio_threshold: A scalar defining an audio threshold volume. Don't play audio below this.
         """
 
         self._framerate: float = framerate
         self._url: str = url
         self._movement_threshold: float = movement_threshold
+        self._audio_threshold: float = audio_threshold
         self._previous_arr: np.array = np.zeros([0])
         self._has_previous_image: bool = False
         self._movement: bool = False
@@ -50,7 +54,6 @@ class Listener:
         lit = pygame.image.load(str(IMAGES_DIRECTORY.joinpath("lit.png"))).convert()
         unlit = pygame.image.load(str(IMAGES_DIRECTORY.joinpath("unlit.png"))).convert()
         movement_time = "Never"
-        sounds = []
         while True:
             # Quit when the user presses the Escape key.
             for event in pygame.event.get():
@@ -98,12 +101,11 @@ class Listener:
                     move_time_surface = font.render(f"Last movement: {movement_time}", True, (0, 0, 0), (255, 255, 255))
                     pygame.display.get_surface().blit(move_time_surface, (16, display_size[1] - text_size[1] - 16))
                     pygame.display.flip()
-                    # Queue up audio.
-                    sounds.append(pygame.mixer.Sound(b64decode(js["audio"])))
-                if not channel.get_busy():
-                    channel.play(sounds.pop(0))
-                else:
-                    print(channel.get_sound().get_length())
+                    audio = b64decode(js["audio"])
+                    rms = audioop.rms(audio, 2)
+                    if rms > self._audio_threshold:
+                        # Queue up audio.
+                        channel.play(pygame.mixer.Sound(audio))
             except ConnectionError:
                 pass
             # Wait.

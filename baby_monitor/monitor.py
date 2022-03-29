@@ -1,5 +1,4 @@
 from typing import Tuple
-from time import sleep
 from base64 import b64encode
 import pygame.camera
 import pyaudio
@@ -62,8 +61,6 @@ class Monitor:
                     for i in range(0, int(44100 / self._audio_chunk * self._framerate)):
                         audio += audio_stream.read(self._audio_chunk)
                     self.audio = b64encode(audio).decode("utf-8")
-                    # Wait.
-                    sleep(self._framerate)
                 except KeyboardInterrupt:
                     done = True
         finally:

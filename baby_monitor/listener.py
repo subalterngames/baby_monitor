@@ -16,7 +16,7 @@ class Listener:
     Listen to the baby monitor. Show the webcam. Ping the user ("ding") when there is movement.
     """
 
-    def __init__(self, framerate: float = 0.5, url: str = "http://127.0.0.1:5000/get", movement_threshold: float = 5,
+    def __init__(self, framerate: float = 0.5, url: str = "http://127.0.0.1:5000/get", movement_threshold: float = 10,
                  audio_threshold: float = 100):
         """
         :param framerate: Sleep this many seconds between frames.

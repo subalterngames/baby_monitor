@@ -67,7 +67,7 @@ class Monitor:
                     self.image = b64encode(pygame.surfarray.array3d(pygame.transform.scale(camera.get_image(),
                                                                                            self.camera_size))).decode("utf-8")
                     # Get a chunk of audio.
-                    audio_arr = sd.rec(frames=int(44100 / (self._framerate * self._audio_chunk)), samplerate=44100, channels=2, blocking=True)
+                    audio_arr = sd.rec(frames=int(44100 * self._framerate), samplerate=44100, channels=2, blocking=True)
                     # Encode the audio chunk.
                     self.audio = b64encode(audio_arr.flatten()).decode("utf-8")
                     self.audio_shape = audio_arr.shape

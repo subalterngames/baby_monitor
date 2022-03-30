@@ -9,10 +9,11 @@ class Monitor:
     Watch for movement using a webcam.
     """
 
-    def __init__(self, camera_name: str = None, framerate: float = 0.5, audio_chunk: int = 1024):
+    def __init__(self, camera_name: str = None, framerate: float = 0.5, audio_chunk: int = 64, camera_scale: float = 0.5):
         """
         :param camera_name: The expected name of the webcam. If None, defaults to the first camera.
         :param framerate: Seconds per image capture.
+        :param image_scale: Scale the image by this factor.
         """
 
         # Initialize the camera.
@@ -24,6 +25,7 @@ class Monitor:
             assert camera_name in camera_names, f"Camera {camera_name} not found"
         # Get the camera.
         self._camera = pygame.camera.Camera(camera_names[camera_names.index(camera_name)])
+        self._camera_scale: float = camera_scale
         self._framerate: float = framerate
         """:field
         The image from this frame encoded as a base64 string.
@@ -52,11 +54,13 @@ class Monitor:
         done = False
         # Check deltas.
         self.camera_size = self._camera.get_size()
+        self.camera_size = (int(self.camera_size[0] * self._camera_scale), int(self.camera_size[1] * self._camera_scale))
         try:
             while not done:
                 try:
-                    # Get an image from the camera. Convert the surface to a numpy array. Save the image as a string.
-                    self.image = b64encode(pygame.surfarray.array3d(self._camera.get_image())).decode("utf-8")
+                    # Get an image from the camera. Resize it. Convert the surface to a numpy array. Save the image as a string.
+                    self.image = b64encode(pygame.surfarray.array3d(pygame.transform.scale(self._camera.get_image(),
+                                                                                           self.camera_size))).decode("utf-8")
                     audio = b''
                     for i in range(0, int(44100 / self._audio_chunk * self._framerate)):
                         audio += audio_stream.read(self._audio_chunk)

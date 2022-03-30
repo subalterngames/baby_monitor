@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from threading import Thread
 import logging
 import netifaces as ni
@@ -5,8 +6,11 @@ from flask import Flask
 from flask import jsonify
 from baby_monitor.monitor import Monitor
 
+parser = ArgumentParser()
+parser.add_argument("--audio_device", type=str)
+args = parser.parse_args()
 app = Flask(__name__)
-m = Monitor()
+m = Monitor(args.audio_device)
 
 
 @app.route('/get')

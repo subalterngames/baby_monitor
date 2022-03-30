@@ -53,7 +53,7 @@ python3 monitor_app.py
 
 ## Run the listener app
 
-The listener app connects to `monitor_app.py`. It will show images from the webcam and play audio. If there is movement, a green circle will light up and play a "ding" sound. Press the Escape key to close the app.
+The listener app connects to `monitor_app.py`. It will show images from the webcam and play audio. If there is movement, a green circle will light up. Press the Escape key to close the app.
 
 Windows:
 
@@ -73,7 +73,6 @@ python3 listener_app.py --address ADDRESS
 ## Credits
 
 - [Raleway font](https://fonts.google.com/specimen/Raleway) Matt McInerney, Pablo Impallari, Rodrigo Fuenzalida
-- [Ding sound](https://opengameart.org/content/completion-sound) by Brandon Morris
 
 ## Changelog
 
@@ -81,3 +80,4 @@ python3 listener_app.py --address ADDRESS
 
 - Added audio input (microphone) data.
 - Moved movement detection from `monitor.py` to `listener.py`
+- Removed "ding" sound effect.

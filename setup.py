@@ -41,5 +41,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     keywords='baby monitor pygame',
-    install_requires=["flask", "numpy", "pygame", "requests", "pillow", "netifaces", "pyaudio"],
+    install_requires=["flask", "numpy", "pygame", "requests", "pillow", "netifaces", "sounddevice"],
 )

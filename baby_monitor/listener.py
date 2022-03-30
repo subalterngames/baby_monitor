@@ -1,24 +1,23 @@
 from datetime import datetime
 from base64 import b64decode
-from time import sleep
-import audioop
 import numpy as np
 from PIL import Image, ImageChops
 from requests import get
 from requests.exceptions import ConnectionError
 import pygame
-import pygame.mixer
-from baby_monitor.paths import FONT_PATH, IMAGES_DIRECTORY, AUDIO_DIRECTORY
+import sounddevice as sd
+from baby_monitor.paths import FONT_PATH, IMAGES_DIRECTORY
 
 
 class Listener:
     """
-    Listen to the baby monitor. Show the webcam. Ping the user ("ding") when there is movement.
+    Listen to the baby monitor. Show the webcam. Play audio.
     """
 
-    def __init__(self, framerate: float = 0.5, url: str = "http://127.0.0.1:5000/get", movement_threshold: float = 10,
-                 audio_threshold: float = 100):
+    def __init__(self, audio_device: str, framerate: float = 0.5, url: str = "http://127.0.0.1:5000/get",
+                 movement_threshold: float = 10, audio_threshold: float = 100):
         """
+        :param audio_device: The name of the output audio device.
         :param framerate: Sleep this many seconds between frames.
         :param url: The **local** address and port of the monitor, e.g. `"http://10.0.0.62:42069/get"`.
         :param movement_threshold: A scalar defining movement. A higher value means that more movement is ignored.
@@ -32,6 +31,7 @@ class Listener:
         self._previous_arr: np.array = np.zeros([0])
         self._has_previous_image: bool = False
         self._movement: bool = False
+        sd.default.device = (None, audio_device)
 
     def run(self) -> None:
         # Initialize the window.
@@ -41,7 +41,6 @@ class Listener:
         pygame.display.set_caption("Baby Listener")
         pygame.display.get_surface().fill((255, 255, 255))
         # Get the sound.
-        sound = pygame.mixer.Sound(str(AUDIO_DIRECTORY.joinpath("gmae.wav").resolve()))
         channel: pygame.mixer.Channel = pygame.mixer.find_channel()
         # Print some text.
         font = pygame.font.Font(str(FONT_PATH.resolve()), 24)
@@ -61,6 +60,8 @@ class Listener:
                     if pygame.key.name(event.key) == "escape":
                         exit()
             try:
+                if not channel.get_busy() and len(audio_clips) > 0:
+                    channel.play(pygame.mixer.Sound(audio_clips.pop(0)))
                 # Redraw the screen.
                 pygame.display.get_surface().fill((255, 255, 255))
                 pygame.display.get_surface().blit(text_surface, (display_size[0] - text_size[0] - 16,
@@ -90,9 +91,6 @@ class Listener:
                     if movement:
                         pygame.display.get_surface().blit(lit, light_position)
                         movement_time = datetime.today().strftime("%H:%M:%S")
-                        # Ding!
-                        if not self._movement:
-                            sound.play()
                         self._movement = True
                     # Show the unlit light.
                     else:
@@ -101,12 +99,11 @@ class Listener:
                     move_time_surface = font.render(f"Last movement: {movement_time}", True, (0, 0, 0), (255, 255, 255))
                     pygame.display.get_surface().blit(move_time_surface, (16, display_size[1] - text_size[1] - 16))
                     pygame.display.flip()
-                    audio = b64decode(js["audio"])
-                    rms = audioop.rms(audio, 2)
-                    if rms > self._audio_threshold:
-                        # Queue up audio.
-                        channel.play(pygame.mixer.Sound(audio))
+                    audio_bytes = b64decode(js["audio"])
+                    audio_shape = js["audio_shape"]
+                    audio_arr = np.frombuffer(audio_bytes).reshape(audio_shape)
+                    sd.play(audio_arr)
+                    sd.wait()
             except ConnectionError:
                 pass
-            # Wait.
-            sleep(self._framerate)
+

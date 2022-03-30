@@ -69,7 +69,7 @@ class Monitor:
                     # Get a chunk of audio.
                     audio_arr = sd.rec(frames=int(44100 / (self._framerate * self._audio_chunk)), samplerate=44100, channels=2, blocking=True)
                     # Encode the audio chunk.
-                    self.audio = b64encode(audio_arr).decode("utf-8")
+                    self.audio = b64encode(audio_arr.flatten()).decode("utf-8")
                     self.audio_shape = audio_arr.shape
                 except KeyboardInterrupt:
                     done = True

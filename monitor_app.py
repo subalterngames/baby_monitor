@@ -17,7 +17,8 @@ m = Monitor(args.audio_device)
 def get():
     return jsonify({"audio": m.audio,
                     "image": m.image,
-                    "camera_size": m.camera_size})
+                    "camera_size": m.camera_size,
+                    "audio_shape": m.audio_shape})
 
 
 if __name__ == "__main__":

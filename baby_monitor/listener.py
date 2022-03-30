@@ -40,8 +40,6 @@ class Listener:
         pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Baby Listener")
         pygame.display.get_surface().fill((255, 255, 255))
-        # Get the sound.
-        channel: pygame.mixer.Channel = pygame.mixer.find_channel()
         # Print some text.
         font = pygame.font.Font(str(FONT_PATH.resolve()), 24)
         text_surface = font.render("Movement", True, (0, 0, 0), (255, 255, 255))
@@ -60,8 +58,6 @@ class Listener:
                     if pygame.key.name(event.key) == "escape":
                         exit()
             try:
-                if not channel.get_busy() and len(audio_clips) > 0:
-                    channel.play(pygame.mixer.Sound(audio_clips.pop(0)))
                 # Redraw the screen.
                 pygame.display.get_surface().fill((255, 255, 255))
                 pygame.display.get_surface().blit(text_surface, (display_size[0] - text_size[0] - 16,
@@ -106,4 +102,3 @@ class Listener:
                     sd.wait()
             except ConnectionError:
                 pass
-

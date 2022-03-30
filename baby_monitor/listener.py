@@ -95,9 +95,9 @@ class Listener:
                     move_time_surface = font.render(f"Last movement: {movement_time}", True, (0, 0, 0), (255, 255, 255))
                     pygame.display.get_surface().blit(move_time_surface, (16, display_size[1] - text_size[1] - 16))
                     pygame.display.flip()
-                    audio_bytes = b64decode(js["audio"])
-                    audio_shape = js["audio_shape"]
-                    audio_arr = np.frombuffer(audio_bytes).reshape(audio_shape)
+                    #audio_bytes = b64decode(js["audio"])
+                    #audio_shape = js["audio_shape"]
+                    audio_arr = np.array(js["audio"])
                     sd.play(audio_arr)
                     sd.wait()
             except ConnectionError:

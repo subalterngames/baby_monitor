@@ -1,7 +1,16 @@
+import json
 from typing import Tuple, Optional
 from base64 import b64encode
 import pygame.camera
+import numpy as np
 import sounddevice as sd
+
+
+class _NumpyArrayEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
 
 
 class Monitor:
@@ -69,7 +78,7 @@ class Monitor:
                     # Get a chunk of audio.
                     audio_arr = sd.rec(frames=int(44100 * self._framerate), samplerate=44100, channels=2, blocking=True)
                     # Encode the audio chunk.
-                    self.audio = b64encode(audio_arr.flatten()).decode("utf-8")
+                    self.audio = json.loads(json.dumps(audio_arr, cls=_NumpyArrayEncoder))
                     self.audio_shape = audio_arr.shape
                 except KeyboardInterrupt:
                     done = True
